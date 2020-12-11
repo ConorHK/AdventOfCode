@@ -28,13 +28,14 @@ class SeatingPlan:
     def adjacent_state(self, curr_seat_x, curr_seat_y):
         occupied = 0
         for left_right, above_below in self.ADJACENT_POSITIONS:
-            adjacent_seat_x = left_right + curr_seat_x
-            adjacent_seat_y = above_below + curr_seat_y
-
-            if not self.position_in_bounds(adjacent_seat_x, adjacent_seat_y):
-                continue
-            occupied += self.seats[adjacent_seat_x][adjacent_seat_y] == self.OCCUPIED_SEAT
+            adjacent_seat_x, adjacent_seat_y, within_range = self.get_adjacent_seat_pos(curr_seat_x, curr_seat_y, left_right, above_below)
+            occupied += within_range and self.seats[adjacent_seat_x][adjacent_seat_y] == self.OCCUPIED_SEAT
         return occupied
+
+    def get_adjacent_seat_pos(self, x,y, x_increment, y_increment):
+            x, y = x + x_increment, y + y_increment
+            within_range = self.position_in_bounds(x, y)
+            return (x, y, within_range)
 
     def update(self):
         while True:
@@ -64,17 +65,16 @@ class SeatingPlanVisibility(SeatingPlan):
     def adjacent_state(self, curr_seat_x, curr_seat_y):
         occupied = 0
         for left_right, above_below in self.ADJACENT_POSITIONS:
-            adjacent_seat_x = left_right + curr_seat_x
-            adjacent_seat_y = above_below + curr_seat_y
-
-            while (
-                    (within_range:=self.position_in_bounds(adjacent_seat_x, adjacent_seat_y))
-                    and (self.seats[adjacent_seat_x][adjacent_seat_y] == self.FLOOR)
-                    ):
-                adjacent_seat_x += left_right
-                adjacent_seat_y += above_below
+            adjacent_seat_x, adjacent_seat_y, within_range = self.get_adjacent_seat_pos(curr_seat_x, curr_seat_y, left_right, above_below)
             occupied += within_range and self.seats[adjacent_seat_x][adjacent_seat_y] == self.OCCUPIED_SEAT
         return occupied
+
+    def get_adjacent_seat_pos(self, x, y, x_increment, y_increment):
+            x, y, _ = super().get_adjacent_seat_pos(x, y, x_increment, y_increment)
+            while ((within_range:=self.position_in_bounds(x,y)) and (self.seats[x][y] == self.FLOOR)):
+                x += x_increment
+                y += y_increment
+            return (x, y, within_range)
 
     def evolve(self):
         return super().evolve(tolerance=5)
