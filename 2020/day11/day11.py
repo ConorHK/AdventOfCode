@@ -3,7 +3,7 @@ from copy import deepcopy
 from IPython.display import clear_output
 import time
 
-class SeatingPlan:
+class PartOne:
     EMPTY_SEAT = 'L'
     FLOOR = '.'
     OCCUPIED_SEAT = '#'
@@ -12,6 +12,7 @@ class SeatingPlan:
             ( 0, -1),          ( 0, 1),
             ( 1, -1), ( 1, 0), ( 1, 1)
     ]
+    TOLERANCE = 4
 
     def __init__(self, seats):
         self.seats = seats
@@ -54,14 +55,15 @@ class SeatingPlan:
                 curr_seat = self.seats[row][column]
                 if curr_seat == self.EMPTY_SEAT and num_adjacent == 0:
                     seat_copy[row][column] = self.OCCUPIED_SEAT
-                elif curr_seat == self.OCCUPIED_SEAT and num_adjacent >= tolerance:
+                elif curr_seat == self.OCCUPIED_SEAT and num_adjacent >= self.TOLERANCE:
                     seat_copy[row][column] = self.EMPTY_SEAT
         return seat_copy
 
     def number_of_occupied_seats(self):
         return sum(list(s.count(self.OCCUPIED_SEAT) for s in self.seats))
 
-class SeatingPlanVisibility(SeatingPlan):
+class PartTwo(PartOne):
+    TOLERANCE = 5
     def adjacent_state(self, curr_seat_x, curr_seat_y):
         occupied = 0
         for left_right, above_below in self.ADJACENT_POSITIONS:
@@ -76,18 +78,14 @@ class SeatingPlanVisibility(SeatingPlan):
                 y += y_increment
             return (x, y, within_range)
 
-    def evolve(self):
-        return super().evolve(tolerance=5)
-
-
 seating_plan = [list(seat.strip()) for seat in open('day11_input.txt').readlines()]
 
-part_one = SeatingPlan(seating_plan)
+part_one = PartOne(seating_plan)
 part_one.update()
 print(f"Part one: {part_one.number_of_occupied_seats()}")
 
 time.sleep(5)
 
-part_two = SeatingPlanVisibility(seating_plan)
+part_two = PartTwo(seating_plan)
 part_two.update()
 print(f"Part two: {part_two.number_of_occupied_seats()}")
