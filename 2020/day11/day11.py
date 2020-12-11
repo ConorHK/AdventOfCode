@@ -22,13 +22,16 @@ class SeatingPlan:
         clear_output(wait=True)
         print('\n'.join("".join(seat) for seat in self.seats))
 
+    def position_in_bounds(self, x, y):
+        return x in range(self.ROW_LENGTH) and y in range(self.COLUMN_LENGTH)
+
     def adjacent_state(self, curr_seat_x, curr_seat_y):
         occupied = 0
         for left_right, above_below in self.ADJACENT_POSITIONS:
             adjacent_seat_x = left_right + curr_seat_x
             adjacent_seat_y = above_below + curr_seat_y
 
-            if not (adjacent_seat_x in range(self.ROW_LENGTH) and adjacent_seat_y in range(self.COLUMN_LENGTH)):
+            if not self.position_in_bounds(adjacent_seat_x, adjacent_seat_y):
                 continue
             occupied += self.seats[adjacent_seat_x][adjacent_seat_y] == self.OCCUPIED_SEAT
         return occupied
@@ -65,7 +68,7 @@ class SeatingPlanVisibility(SeatingPlan):
             adjacent_seat_y = above_below + curr_seat_y
 
             while (
-                    (within_range:=adjacent_seat_x in range(self.ROW_LENGTH) and adjacent_seat_y in range(self.COLUMN_LENGTH))
+                    (within_range:=self.position_in_bounds(adjacent_seat_x, adjacent_seat_y))
                     and (self.seats[adjacent_seat_x][adjacent_seat_y] == self.FLOOR)
                     ):
                 adjacent_seat_x += left_right
@@ -88,4 +91,3 @@ time.sleep(5)
 part_two = SeatingPlanVisibility(seating_plan)
 part_two.update()
 print(f"Part two: {part_two.number_of_occupied_seats()}")
-
