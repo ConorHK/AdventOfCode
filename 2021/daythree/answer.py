@@ -24,7 +24,7 @@ def get_common_bit(bitlist, position, most_common):
 # part one
 gamma = ""
 epsilon = ""
-for position in range(0, number_length):
+for position in range(number_length):
     gamma += get_common_bit(bitlist, position, most_common=True)
     epsilon += get_common_bit(bitlist, position, most_common=False)
 print(int(gamma, 2) * int(epsilon, 2))
@@ -32,7 +32,7 @@ print(int(gamma, 2) * int(epsilon, 2))
 # part two
 oxygenlist = bitlist.copy()
 scrubberlist = bitlist.copy()
-for position in range(0, number_length):
+for position in range(number_length):
     most_common_bit = get_common_bit(oxygenlist, position, most_common=True)
     least_common_bit = get_common_bit(scrubberlist, position, most_common=False)
     oxygenlist = list(filter(lambda x: x[position] == most_common_bit, oxygenlist))
