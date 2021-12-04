@@ -24,6 +24,7 @@ def get_winning_matrix(matrices):
             if (-5 in matrix.sum(axis=0)) or (-5 in matrix.sum(axis=1)):
                 return matrix_num, position
             matrices[matrix_num] = np.where(matrix == number, -1, matrix)
+    raise ValueError("Answer not found")
 
 
 def get_answer():
@@ -40,5 +41,4 @@ print(get_answer())
 while len(matrices) > 1:
     winning_matrix_num, last_number = get_winning_matrix(matrices)
     matrices.pop(winning_matrix_num)
-
 print(get_answer())
