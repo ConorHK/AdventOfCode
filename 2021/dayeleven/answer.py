@@ -1,21 +1,28 @@
 import numpy as np
 
 with open("input.txt") as f:
-    grid = np.array([[int(number) for number in line.strip()] for line in f.readlines()])
+    grid = np.array(
+        [[int(number) for number in line.strip()] for line in f.readlines()]
+    )
 
 
 flashes = 0
-row_size, column_size = grid.shape
+
+
+def surrounding_rows(position):
+    return [
+        position + neighbor
+        for neighbor in range(-1, 2)
+        if (0 <= position + neighbor < grid.shape[0])
+    ]
+
+
 def flash(x, y):
     global flashes
     flashes += 1
     grid[x, y] = -1
-    rows_neighbours = [-1 + x, x, 1 + x]
-    column_neighbours = [-1 + y, y, 1 + y]
-    for row in rows_neighbours:
-        for column in column_neighbours:
-            if not (0 <= row < row_size and 0 <= column < column_size):
-                continue
+    for row in surrounding_rows(x):
+        for column in surrounding_rows(y):
             if grid[row, column] != -1:
                 grid[row, column] += 1
                 if grid[row, column] >= 10:
@@ -34,6 +41,6 @@ def run_simulation(iterations):
     return flashes
 
 grid_copy = grid.copy()
-print(run_simulation(iterations=100)) # part one
+print(run_simulation(iterations=100))  # part one
 grid = grid_copy
-print(run_simulation(iterations=1000)) # part two
+print(run_simulation(iterations=1000))  # part two
