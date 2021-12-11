@@ -1,10 +1,9 @@
 import numpy as np
 from aoc.matrix import surrounding_positions, create_numpy_array_from_file
 
-FLASHED = -1
 READY_TO_FLASH = 10
 SIMULTANEOUS_FLASH = 0
-START_ENERGY = 0
+FLASHED = 0
 
 grid = create_numpy_array_from_file(filename="input.txt")
 
@@ -24,7 +23,6 @@ def flash(x, y):
 def run_simulation(iterations):
     global grid
     for iteration in range(iterations):
-        grid = np.where(grid == FLASHED, START_ENERGY, grid)
         if np.sum(grid) == SIMULTANEOUS_FLASH:
             return iteration
         grid = grid + 1
