@@ -1,30 +1,20 @@
 import numpy as np
+from aoc.matrix import surrounding_positions, create_numpy_array_from_file
 
 FLASHED = -1
 READY_TO_FLASH = 10
 SIMULTANEOUS_FLASH = 0
 START_ENERGY = 0
 
-with open("input.txt") as f:
-    grid = np.array(
-        [[int(number) for number in line.strip()] for line in f.readlines()]
-    )
-
-
-def surrounding_rows(position):
-    return [
-        position + neighbor
-        for neighbor in range(-1, 2)
-        if (0 <= position + neighbor < grid.shape[0])
-    ]
+grid = create_numpy_array_from_file(filename="input.txt")
 
 
 def flash(x, y):
     global flashes
     flashes += 1
     grid[x, y] = FLASHED
-    for row in surrounding_rows(x):
-        for column in surrounding_rows(y):
+    for row in surrounding_positions(position=x, array_size=grid.shape[0]):
+        for column in surrounding_positions(position=y, array_size=grid.shape[0]):
             if grid[row, column] != FLASHED:
                 grid[row, column] += 1
                 if grid[row, column] >= READY_TO_FLASH:
