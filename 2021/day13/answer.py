@@ -41,5 +41,5 @@ for fold_instructions in folds:
 
 array = np.zeros((6, 40), bool)
 for x, y in points:
-    array[y, x] = 1
-print(np.array2string(array, separator="", formatter={"bool": {0: " ", 1: "X"}.get}))
+    array[y, x] = True
+print(np.array2string(array, separator="", formatter={"bool": {False: " ", True: "█"}.get}))
