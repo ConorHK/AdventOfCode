@@ -15,25 +15,27 @@ with open("input.txt") as f:
 
 def grow(iterations):
     pair_count = defaultdict(lambda: 0)
+    characters = defaultdict(lambda: 0)
+
     for number, character in enumerate(polymer):
         with suppress(IndexError):
+            characters[character] += 1
             pair = character + polymer[number + 1]
             pair_count[pair] += 1
 
-    characters = defaultdict(lambda: 0)
     for _ in range(iterations):
         pair_items = pair_count.copy().items()
 
         for (element_one, element_two), count in pair_items:
             insertion = instructions[element_one + element_two]
-            characters[insertion] += insertion
+            characters[insertion] += count
 
-            pair_count[element_one + insertion] += insertion
-            pair_count[insertion + element_two] += insertion
+            pair_count[element_one + insertion] += count
+            pair_count[insertion + element_two] += count
 
             pair_count[element_one + element_two] -= count
 
-    return (max(characters.values()) - min(characters.values())) + 2 # not sure why answer is off by two
+    return (max(characters.values()) - min(characters.values()))
 
 
 print(grow(PART_ONE))
