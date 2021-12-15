@@ -1,23 +1,23 @@
 import numpy as np
-from aoc.matrix import surrounding_positions, create_numpy_array_from_file
+from aoc.matrix import neighbours, numpy_from_file
 
 READY_TO_FLASH = 10
 SIMULTANEOUS_FLASH = 0
 FLASHED = 0
 
-grid = create_numpy_array_from_file(filename="input.txt")
+grid = numpy_from_file(filename="input.txt")
 
 
 def flash(x, y):
     global flashes
     flashes += 1
     grid[x, y] = FLASHED
-    for row in surrounding_positions(position=x, array_size=grid.shape[0]):
-        for column in surrounding_positions(position=y, array_size=grid.shape[0]):
-            if grid[row, column] != FLASHED:
-                grid[row, column] += 1
-                if grid[row, column] >= READY_TO_FLASH:
-                    flash(x=row, y=column)
+
+    for row, column in neighbours((x, y), array_size=grid.shape, diagonal=True):
+        if grid[row, column] != FLASHED:
+            grid[row, column] += 1
+            if grid[row, column] >= READY_TO_FLASH:
+                flash(x=row, y=column)
 
 
 def run_simulation(iterations):
