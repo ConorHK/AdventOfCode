@@ -40,14 +40,10 @@ def number(bytes):
     return int("".join(bytes), 2)
 
 
-def pop_bits():
-    yield bits.popleft()
-
-
 def read_bits(size):
     output = []
     for _ in range(size):
-        output.append(next(pop_bits()))
+        output.append(bits.popleft())
     return output
 
 
