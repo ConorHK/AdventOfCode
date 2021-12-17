@@ -2,7 +2,7 @@ from math import prod
 from collections import deque
 
 LITERAL_VALUE = 4
-binary = {
+BINARY = {
     "0": "0000",
     "1": "0001",
     "2": "0010",
@@ -32,7 +32,7 @@ OPERATIONS = {
 }
 
 with open("input.txt") as f:
-    bytes = "".join(binary[hex_value] for hex_value in f.read().strip())
+    bytes = "".join(BINARY[hex_value] for hex_value in f.read().strip())
     bits = deque([bit for bit in bytes])
 
 
