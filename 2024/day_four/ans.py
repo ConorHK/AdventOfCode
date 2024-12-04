@@ -98,9 +98,10 @@ def search_neighbors_for_xmas(position, word_search: Board, remaining_word):
 
 
 word_search = Board(content=SAMPLE)
-x_neighbours = [
-    word_search.get_neighbours(position)
+x_neighbours: list[set[tuple[int, int]]]= [
+    x_neighbour
     for position in word_search.positions_of_letter(letter="X")
+    if (x_neighbour:= word_search.get_neighbours(position))
 ]
 
 print(
