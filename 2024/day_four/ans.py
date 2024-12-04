@@ -1,122 +1,119 @@
-"""
-As the search for the Chief continues, a small Elf who lives on the station tugs on your shirt; she'd like to know if you could help her with her word search (your puzzle input). She only has to find one word: XMAS.
-
-This word search allows words to be horizontal, vertical, diagonal, written backwards, or even overlapping other words. It's a little unusual, though, as you don't merely need to find one instance of XMAS - you need to find all of them. Here are a few ways XMAS might appear, where irrelevant characters have been replaced with .:
-..X...
-.SAMX.
-.A..A.
-XMAS.S
-.X....
-Take a look at the little Elf's word search. How many times does XMAS appear?
-
-....;1111.
-.$$$$;2...
-...&..2...
-..&.^.2S.5
-4443332.75
-&.....^7.5
-S.S.9.7.!5
-.%.9.8.!.6
-..9.8.!.*6
-.9.8.!@@@6
-
-....XXMAS.
-.SAMXMS...
-...S..A...
-..A.A.MS.X
-XMASAMX.MM
-X.....XA.A
-S.S.S.S.SS
-.A.A.A.A.A
-..M.M.M.MM
-.X.X.XMASX
----
-Approach:
-Search for all X's
-From there Breadth first search in all 8 directions. Count up number of xmas strings (as could be more than one).
-Mark X as visited.
-Continue
-"""
+from __future__ import annotations
 from itertools import product
 from collections import deque
 from pathlib import Path
+from functools import cache
+
+"""
+Approach:
+* Search for all X's
+* From there search in all 8 directions. Count up number of xmas strings (as could be more than one).
+* Continue
+"""
 
 SAMPLE = [
-    ["M", "M", "M", "S", "X", "X", "M", "A", "S", "M", ],
-    ["M", "S", "A", "M", "X", "M", "S", "M", "S", "A", ],
-    ["A", "M", "X", "S", "X", "M", "A", "A", "M", "M", ],
-    ["M", "S", "A", "M", "A", "S", "M", "S", "M", "X", ],
-    ["X", "M", "A", "S", "A", "M", "X", "A", "M", "M", ],
-    ["X", "X", "A", "M", "M", "X", "X", "A", "M", "A", ],
-    ["S", "M", "S", "M", "S", "A", "S", "X", "S", "S", ],
-    ["S", "A", "X", "A", "M", "A", "S", "A", "A", "A", ],
-    ["M", "A", "M", "M", "M", "X", "M", "M", "M", "M", ],
-    ["M", "X", "M", "X", "A", "X", "M", "A", "S", "X", ],
+    [ "M", "M", "M", "S", "X", "X", "M", "A", "S", "M", ],
+    [ "M", "S", "A", "M", "X", "M", "S", "M", "S", "A", ],
+    [ "A", "M", "X", "S", "X", "M", "A", "A", "M", "M", ],
+    [ "M", "S", "A", "M", "A", "S", "M", "S", "M", "X", ],
+    [ "X", "M", "A", "S", "A", "M", "X", "A", "M", "M", ],
+    [ "X", "X", "A", "M", "M", "X", "X", "A", "M", "A", ],
+    [ "S", "M", "S", "M", "S", "A", "S", "X", "S", "S", ],
+    [ "S", "A", "X", "A", "M", "A", "S", "A", "A", "A", ],
+    [ "M", "A", "M", "M", "M", "X", "M", "M", "M", "M", ],
+    [ "M", "X", "M", "X", "A", "X", "M", "A", "S", "X", ],
 ]
 
 
-def get_word_search():
-    output = []
-    with Path("input.txt").open("r") as word_search: 
-        for line in word_search.readlines():
-            output.append(list(line.strip()))
-    return output
+class Board:
+
+    @classmethod
+    def from_input(cls, input_path: Path) -> Board:
+        output = []
+        with input_path.open("r") as word_search:
+            for line in word_search.readlines():
+                output.append(list(line.strip()))
+        return cls(content=output)
+
+    def __init__(self, content: list[list[str]]) -> None:
+        self.content = content
+
+    @property
+    @cache
+    def width(self) -> int:
+        return len(self.content)
+
+    @property
+    @cache
+    def height(self) -> int:
+        return len(self.content[0])
+
+    @cache
+    def is_in_bounds(self, x: int, y: int) -> bool:
+        return 0 <= x < self.width and 0 <= y < self.height
+
+    def positions_of_letter(self, letter: str) -> set[tuple[int, int]]:
+        positions = set()
+        for x_pos, y_pos in product(range(self.width), range(self.height)):
+            if self.content[x_pos][y_pos] == letter:
+                positions.add((x_pos, y_pos))
+        return positions
+
+    def get_neighbours(
+        self,
+        position,
+        neighbour_map: list[tuple[int, int]] = [
+            (-1, 0),
+            (0, -1),
+            (0, 1),
+            (1, 0),
+            (-1, -1),
+            (1, -1),
+            (-1, 1),
+            (1, 1),
+        ],
+    ) -> set[tuple[int, int]] | None:
+        x, y = position
+        output = set()
+        for dx, dy in neighbour_map:
+            row, column = x + dx, y + dy
+            if self.is_in_bounds(x=row, y=column):
+                output.add((row, column, (dx, dy)))
+        return output if len(output) else None
 
 
-def positions_of_x(word_search, bounds):
-    rows, columns = bounds
-    x_positions = []
-    for x_pos, y_pos in product(range(rows), range(columns)):
-        if word_search[x_pos][y_pos] == "X":
-            x_positions.append((x_pos, y_pos))
-    return x_positions
-
-
-def is_in_bounds(bounds, position):
-    x, y = position
-    width, height = bounds
-    return 0 <= x < width and 0 <= y < height
-
-
-def get_x_neighbours(position, bounds, word_search):
-    x, y = position
-    output = set()
-    neighbour_map = [(-1, 0), (0, -1), (0, 1), (1, 0), (-1, -1), (1, -1), (-1, 1), (1, 1)]
-    for dx, dy in neighbour_map:
-        row, column = x + dx, y + dy
-        if is_in_bounds(bounds, (row, column)):
-            output.add((row, column, (dx, dy)))
-    return output
-
-
-def search_neighbors_for_xmas(position, bounds, word_search, remaining_word):
+def search_neighbors_for_xmas(position, word_search: Board, remaining_word):
     x, y, direction = position
-    if word_search[x][y] != remaining_word.popleft():
-        return
+    if word_search.content[x][y] != remaining_word.popleft():
+        return 0
     if len(remaining_word) <= 0:
-        return position
+        return 1
 
-    next_position = (x + direction[0], y + direction[1])
-    if not is_in_bounds(bounds=bounds, position=next_position):
-        return
-    next_position = (next_position[0], next_position[1], direction)
+    next_position = (x + direction[0], y + direction[1], direction)
+    if not word_search.is_in_bounds(x=next_position[0], y=next_position[1]):
+        return 0
     return search_neighbors_for_xmas(
-        position=next_position,
-        bounds=bounds,
-        word_search=word_search,
-        remaining_word=remaining_word
+        position=next_position, word_search=word_search, remaining_word=remaining_word
     )
 
 
-word_search = get_word_search()
-bounds = len(word_search), len(word_search[0])
-start_positions = positions_of_x(word_search=word_search, bounds=bounds)
-result = []
-for position in start_positions:
-    neighbours = get_x_neighbours(position, bounds, word_search)
-    for neighbour in neighbours:
-        result.append(search_neighbors_for_xmas(position=neighbour, bounds=bounds, word_search=word_search, remaining_word=deque(["M", "A", "S"].copy())))
-print(len([x for x in result if x]))
+word_search = Board(content=SAMPLE)
+x_neighbours = [
+    word_search.get_neighbours(position)
+    for position in word_search.positions_of_letter(letter="X")
+]
+
+print(
+    sum(
+        search_neighbors_for_xmas(
+            position=neighbour,
+            word_search=word_search,
+            remaining_word=deque(["M", "A", "S"].copy()),
+        )
+        for neighbours in x_neighbours
+        for neighbour in neighbours
+    )
+)
 
 
 """
@@ -136,70 +133,60 @@ Approach:
 
 """
 
+
 def get_a_cross_point(position, bounds, word_search):
     x, y = position
     output = set()
     neighbour_map = [(-1, -1), (-1, 1)]
     for dx, dy in neighbour_map:
         row, column = x + dx, y + dy
-        if is_in_bounds(bounds, (row, column)):
+        if word_search.is_in_bounds(x=row, y=column):
             output.add((row, column, (dx, dy)))
     return output
 
-def positions_of_a(word_search, bounds):
-    rows, columns = bounds
-    x_positions = []
-    for x_pos, y_pos in product(range(rows), range(columns)):
-        if word_search[x_pos][y_pos] == "A":
-            x_positions.append((x_pos, y_pos))
-    return x_positions
 
-
-LETTER_MAP = {
-    "M": "S",
-    "S": "M",
-}
-
-
-def search_neighbors_for_mas_cross(position, bounds, word_search, letters):
+def search_neighbors_for_mas_cross(position, word_search, letters):
     x, y, direction = position
-    letter = word_search[x][y]
+    letter = word_search.content[x][y]
     if letter not in letters:
-        return False
+        return 0
     letters.remove(letter)
     if len(letters) == 0:
-        return True
+        return 1
 
-    """
-    if we have -1, -1, x is 0, y is 0
-    we need to go to 2, 2, -> therefore add 2 to each
-
-    if we have -1, 1 x is 0, y is 2
-    we need to go to 2, 0 -> therefore add 2, minus 2
-    """
     if direction == (-1, -1):
         next_position = (x + 2, y + 2)
     else:
         next_position = (x + 2, y - 2)
-    if not is_in_bounds(bounds=bounds, position=next_position):
-        return False
+
+    if not word_search.is_in_bounds(x=next_position[0], y=next_position[1]):
+        return 0
 
     next_position = (next_position[0], next_position[1], direction)
     return search_neighbors_for_mas_cross(
-        position=next_position,
-        bounds=bounds,
-        word_search=word_search,
-        letters=letters
+        position=next_position, word_search=word_search, letters=letters
     )
 
-word_search = get_word_search()
-bounds = len(word_search), len(word_search[0])
-start_positions = positions_of_a(word_search=word_search, bounds=bounds)
-result = []
-for position in start_positions:
-    neighbours = get_a_cross_point(position, bounds, word_search)
-    if neighbours:
-        res = all(search_neighbors_for_mas_cross(position=neighbour, bounds=bounds, word_search=word_search, letters=["M", "S"].copy()) for neighbour in neighbours)
-        if res:
-            result.append(position)
-print(len([x for x in result if x]))
+
+part_b_result = 0
+a_cross_points = [
+    neighbour
+    for position in word_search.positions_of_letter(letter="A")
+    for neighbour in [
+        word_search.get_neighbours(position, neighbour_map=[(-1, -1), (-1, 1)])
+    ]
+    if neighbour is not None
+]
+
+for cross_point in a_cross_points:
+    result = all(
+        search_neighbors_for_mas_cross(
+            position=neighbour,
+            word_search=word_search,
+            letters=["M", "S"].copy(),
+        )
+        for neighbour in cross_point
+    )
+    if result:
+        part_b_result += 1
+print(part_b_result)
